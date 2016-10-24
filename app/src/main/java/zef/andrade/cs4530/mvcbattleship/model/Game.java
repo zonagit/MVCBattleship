@@ -7,22 +7,30 @@ import java.util.List;
  * Created by zandrade on 10/12/2016.
  */
 public class Game {
+    public static final int mNumShipCells = 5 + 4 + 3 + 3 + 2;
+
     private List<Player> mPlayers;
     private boolean mGameOver;
-    private int mPlayerTurnID;
+    private Player mCurrentPlayer;
+    private Player mOpponentPlayer;
     private int mPlayerWinnerID;
     private Grid mCurrentPlayerGrid;
     private Grid mOpponentPlayerGrid;
+    private boolean mTurnOver;
+    private boolean mWinnerAnnounced;
 
     public Game() {
         mPlayers = new ArrayList<Player>();
+        mPlayers.add(new Player(0));
         mPlayers.add(new Player(1));
-        mPlayers.add(new Player(2));
-        mPlayerTurnID = 1;
+        mCurrentPlayer = mPlayers.get(0);
+        mOpponentPlayer = mPlayers.get(1);
         mPlayerWinnerID = -1;
         mGameOver = false;
-        mCurrentPlayerGrid = mPlayers.get(0).getGrid();
-        mOpponentPlayerGrid = mPlayers.get(1).getGrid();
+        mTurnOver = false;
+        mWinnerAnnounced = false;
+        mCurrentPlayerGrid = mCurrentPlayer.getGrid();
+        mOpponentPlayerGrid = mOpponentPlayer.getGrid();
 
     }
 
@@ -38,12 +46,38 @@ public class Game {
         return mGameOver;
     }
 
-    public void setPlayerTurnID (int playerTurnID) {
-        mPlayerTurnID = playerTurnID;
+    public void setTurnOver(boolean turnOver) {
+        mTurnOver = turnOver;
     }
 
-    public int getPlayerTurnID() {
-        return mPlayerTurnID;
+    public void setWinnerAnnounced(boolean winnerAnnounced) {
+        mWinnerAnnounced = winnerAnnounced;
+    }
+
+    public boolean getWinnerAnnounced() {
+        return mWinnerAnnounced;
+    }
+
+    public boolean getTurnOver() {
+        return mTurnOver;
+    }
+
+    public void setCurrentPlayer (Player currentPlayer) {
+        mCurrentPlayerGrid = currentPlayer.getGrid();
+        mCurrentPlayer = currentPlayer;
+    }
+
+    public Player getCurrentPlayer() {
+        return mCurrentPlayer;
+    }
+
+    public void setOpponentPlayer (Player opponentPlayer) {
+        mOpponentPlayerGrid = opponentPlayer.getGrid();
+        mOpponentPlayer = opponentPlayer;
+    }
+
+    public Player getOpponentPlayer() {
+        return mOpponentPlayer;
     }
 
     public void setPlayerWinnerID (int winnerID) {
@@ -60,5 +94,12 @@ public class Game {
 
     public Grid getOpponentPlayerGrid() {
         return mOpponentPlayerGrid;
+    }
+
+    public void updateGameOver() {
+        if (mCurrentPlayer.getScore() == mNumShipCells) {
+            mGameOver = true;
+            mPlayerWinnerID = mCurrentPlayer.getPlayerID();
+        }
     }
 }

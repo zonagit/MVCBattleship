@@ -140,10 +140,10 @@ public class GameListFragment extends Fragment implements ListAdapter {
         String listViewText = "Game " + i + ": ";
 
         if (game.getGameOver()) {
-            listViewText += " Completed. \n Player " + game.getPlayerWinnerID() + " won \n";
+            listViewText += " Completed. \n Player " + (game.getPlayerWinnerID()+1) + " won \n";
         }
         else {
-            listViewText += " InProgress. \n Player  " + game.getPlayerTurnID() + " turn \n";
+            listViewText += " InProgress. \n Player  " + (game.getCurrentPlayer().getPlayerID()+1) + " turn \n";
         }
         listViewText += "Player 1 Shots: " + game.getPlayer(0).getMissilesFired();
         listViewText += " Hits: " + game.getPlayer(0).getScore() + "\n";

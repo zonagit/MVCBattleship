@@ -81,6 +81,10 @@ public class GameView extends ViewGroup {
         setMeasuredDimension(resolveSizeAndState(width, widthMeasureSpec, childState),resolveSizeAndState(height, heightMeasureSpec, childState));
     }
 
+    public GameCellView getCell (int x, int y) {
+        return mGameCells[y][x];
+    }
+
     public void setCellColor(int x, int y, int color) {
         mGameCells[y][x].setBackgroundColor(color);
     }

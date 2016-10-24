@@ -13,7 +13,8 @@ public class Cell {
     public enum CellState {
         WATER(1),
         SHIP(2),
-        HIT(3);
+        HIT(3),
+        MISS(4);
 
         CellState(int i) {
         }

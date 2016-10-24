@@ -15,8 +15,12 @@ import android.widget.LinearLayout;
 
 import zef.andrade.cs4530.mvcbattleship.model.Game;
 
-public class MainActivity extends AppCompatActivity implements GameListFragment.OnGameSelectedListener {
+public class MainActivity extends AppCompatActivity implements GameListFragment.OnGameSelectedListener,
+                                                               GameFragment.OnMissileResultListener,
+                                                               GameFragment.OnTransitionScreenListener  {
 
+    public static final String NEXT_TURN_PLAYER_ID = "NextTurnPlayerID";
+    public static final String WINNER_PLAYER_ID = "WinnerPlayerID";
     private static final String GAME_FRAGMENT = "GameFragment";
     private static final String GAME_LIST_FRAGMENT = "GameListFragment";
 
@@ -102,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
             mGameListFragment = GameListFragment.newInstance();
             mGameListFragment.setOnGameSelectedListener(this);
             mGameFragment = GameFragment.newInstance();
+            mGameFragment.setOnMissileResultListener(this);
+            mGameFragment.setOnTransitionScreenListener(this);
 
             transaction.add(mGameListFrame.getId(), mGameListFragment, GAME_LIST_FRAGMENT);
             transaction.add(mGameFrame.getId(), mGameFragment, GAME_FRAGMENT);
@@ -129,11 +135,39 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
         // Load game
         mGameFragment.setGame(game);
 
-        //refresh fragment
+        // refresh game fragment
+        refreshGameFragment();
+    }
+
+    @Override
+    public void OnMissileResult() {
+        refreshGameFragment();
+        if (isTablet(getResources())) {
+            refreshGameListFragment();
+        }
+    }
+
+    private void refreshGameFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         mGameFragment = (GameFragment) getSupportFragmentManager().findFragmentByTag(GAME_FRAGMENT);
         transaction.detach(mGameFragment);
         transaction.attach(mGameFragment);
         transaction.commit();
+    }
+
+    private void refreshGameListFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        mGameListFragment = (GameListFragment) getSupportFragmentManager().findFragmentByTag(GAME_LIST_FRAGMENT);
+        transaction.detach(mGameListFragment);
+        transaction.attach(mGameListFragment);
+        transaction.commit();
+    }
+
+    @Override
+    public void OnNewTurn() {
+        refreshGameFragment();
+        if (isTablet(getResources())) {
+            refreshGameListFragment();
+        }
     }
 }

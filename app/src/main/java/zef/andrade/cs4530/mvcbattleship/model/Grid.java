@@ -14,6 +14,7 @@ import zef.andrade.cs4530.mvcbattleship.GameView;
  * Created by zandrade on 10/12/2016.
  */
 public class Grid {
+
     private List<Ship> mShips;
     private List<Cell> mGridCells;
 
@@ -35,6 +36,10 @@ public class Grid {
 
     public List<Cell> getGridCells() {
         return mGridCells;
+    }
+
+    public List<Ship> getShips() {
+        return mShips;
     }
 
     // place 5 ships of different size randomly in the grid
