@@ -1,12 +1,8 @@
 package zef.andrade.cs4530.mvcbattleship.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 import zef.andrade.cs4530.mvcbattleship.GameView;
 

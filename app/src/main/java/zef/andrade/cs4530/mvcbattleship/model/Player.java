@@ -1,10 +1,6 @@
 package zef.andrade.cs4530.mvcbattleship.model;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import zef.andrade.cs4530.mvcbattleship.GameView;
 
 /**
  * Created by zandrade on 10/12/2016.
@@ -12,13 +8,10 @@ import zef.andrade.cs4530.mvcbattleship.GameView;
 public class Player {
 
     public interface OnMissileFiredListener {
-        public void OnMissileFired(Player player, int x, int y);
-        public void OnMissileResult(Player player, int x, int y, Cell.CellState state);
+        public void OnMissileFired(int x, int y);
+        public void OnMissileResult(int x, int y, Cell.CellState state);
     }
 
-    public interface OnMissileResultListener {
-
-    }
 
     private int mPlayerID;
     private int mScore;
@@ -33,9 +26,6 @@ public class Player {
         mGrid = new Grid();
     }
 
-    public void setPlayerID(int playerID) {
-        mPlayerID = playerID;
-    }
 
     public int getPlayerID() {
         return mPlayerID;
@@ -47,10 +37,6 @@ public class Player {
 
     public int getScore() {
         return mScore;
-    }
-
-    public void setMissilesFired (int missilesFired) {
-        mMissilesFired = missilesFired;
     }
 
     public int getMissilesFired() {
@@ -69,7 +55,7 @@ public class Player {
     public void shootMissileAt(int x, int y) {
         if (mOnMissileFiredListener != null) {
             mMissilesFired ++;
-            mOnMissileFiredListener.OnMissileFired(this, x, y);
+            mOnMissileFiredListener.OnMissileFired(x, y);
         }
     }
 
@@ -85,6 +71,6 @@ public class Player {
            }
         }
         // return the result of the shot to the fragment
-        mOnMissileFiredListener.OnMissileResult(this, x, y, state);
+        mOnMissileFiredListener.OnMissileResult(x, y, state);
     }
 }

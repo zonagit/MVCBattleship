@@ -1,7 +1,6 @@
 package zef.andrade.cs4530.mvcbattleship;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -69,7 +68,7 @@ public class GameFragment extends Fragment implements GameCellView.OnCellTouched
             setupOpponentViewTouchListeners();
             setupMissileFiredListeners();
             // display transition screen on turn over or end game
-            if (mGame.getTurnOver() || (mGame.getGameOver() && !mGame.getWinnerAnnounced())) {
+            if ((mGame.getTurnOver() || mGame.getGameOver()) && !mGame.getWinnerAnnounced()) {
                 timer.schedule(new TransitionScreenTask(), 1500);
             }
         }
@@ -83,6 +82,10 @@ public class GameFragment extends Fragment implements GameCellView.OnCellTouched
 
     public void setGame(Game game) {
         mGame = game;
+    }
+
+    public Game getGame() {
+        return mGame;
     }
 
     public void setOnMissileResultListener(OnMissileResultListener onMissileResultListener) {
@@ -115,14 +118,14 @@ public class GameFragment extends Fragment implements GameCellView.OnCellTouched
     }
 
     private void setupMissileFiredListeners() {
-        Player player1 = mGame.getPlayer(0);
-        Player player2 = mGame.getPlayer(1);
+        Player player1 = mGame.getCurrentPlayer();
+        Player player2 = mGame.getOpponentPlayer();
         player1.setOnMissileFiredListener(this);
         player2.setOnMissileFiredListener(this);
     }
 
     public void loadGame() {
-        Grid playerGrid = mGame.getCurrentPlayerGrid();
+        Grid playerGrid = mGame.getCurrentPlayer().getGrid();
         List<Cell> playerCells = playerGrid.getGridCells();
         mPlayerView = new GameView(getActivity());
         mPlayerView.setBackgroundColor(Color.BLACK);
@@ -133,7 +136,7 @@ public class GameFragment extends Fragment implements GameCellView.OnCellTouched
             mPlayerView.addView(cell);
         }
 
-        Grid opponentGrid = mGame.getOpponentPlayerGrid();
+        Grid opponentGrid = mGame.getOpponentPlayer().getGrid();
         List<Cell> opponentCells = opponentGrid.getGridCells();
         mOpponentView = new GameView(getActivity());
         mOpponentView.setBackgroundColor(Color.WHITE);
@@ -160,22 +163,15 @@ public class GameFragment extends Fragment implements GameCellView.OnCellTouched
     }
 
     @Override
-    public void OnMissileFired(Player player, int x, int y) {
-        int playerThatShotID = player.getPlayerID();
-        Player opponentPlayer;
-        if (playerThatShotID == 0) {
-            opponentPlayer = mGame.getPlayer(1);
-        }
-        else {
-            opponentPlayer = mGame.getPlayer(0);
-        }
+    public void OnMissileFired(int x, int y) {
+        Player opponentPlayer = mGame.getOpponentPlayer();
         opponentPlayer.missileShotAt(x, y);
     }
 
     @Override
-    public void OnMissileResult(Player player, int x, int y, Cell.CellState state) {
+    public void OnMissileResult(int x, int y, Cell.CellState state) {
         int index = y + x * GameView.numRows;
-        Cell cell = player.getGrid().getGridCells().get(index);
+        Cell cell = mGame.getOpponentPlayer().getGrid().getGridCells().get(index);
         cell.setState(state);
         if (state == Cell.CellState.MISS) {
             cell.setColor(GameView.MISS_COLOR);
@@ -207,7 +203,6 @@ public class GameFragment extends Fragment implements GameCellView.OnCellTouched
                 mGame.setWinnerAnnounced(true);
             }
            mOnTransitionScreenListener.OnNewTurn();
-
         }
     }
 

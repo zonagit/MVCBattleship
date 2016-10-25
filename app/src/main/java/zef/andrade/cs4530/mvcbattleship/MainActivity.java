@@ -3,17 +3,30 @@ package zef.andrade.cs4530.mvcbattleship;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.support.v4.app.Fragment;
+import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 import zef.andrade.cs4530.mvcbattleship.model.Game;
+import zef.andrade.cs4530.mvcbattleship.model.Player;
 
 public class MainActivity extends AppCompatActivity implements GameListFragment.OnGameSelectedListener,
                                                                GameFragment.OnMissileResultListener,
@@ -23,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
     public static final String WINNER_PLAYER_ID = "WinnerPlayerID";
     private static final String GAME_FRAGMENT = "GameFragment";
     private static final String GAME_LIST_FRAGMENT = "GameListFragment";
+    private static final String GAME_LIST_FILENAME = "GameList.txt";
+    private static final String GAME_SELECTED_FILENAME = "SelectedGame.txt";
 
     private GameFragment mGameFragment;
     private GameListFragment mGameListFragment;
@@ -54,6 +69,19 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
             }
         });
 
+        Button deleteSelectedGameButton = new Button(this);
+        deleteSelectedGameButton.setText("Delete Selected Game");
+        deleteSelectedGameButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                // remove the selected game from the Fragment List.
+                mGameListFragment.removeGameFromList();
+                refreshGameListFragment();
+            }
+        });
+
         // Game List and Game fragment/buttons layouts
         mGameListLayout = new LinearLayout(this);
         mGameListLayout.setOrientation(LinearLayout.VERTICAL);
@@ -69,12 +97,11 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
         mGameFrame.setBackgroundColor(Color.BLACK);
 
         mGameListLayout.addView(newGameButton, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        mGameListLayout.addView(deleteSelectedGameButton, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         mGameListLayout.addView(mGameListFrame);
 
         // do layout differently if tablet/phone
         if (isTablet(getResources())) {
-          // mGameLayout.addView(mGameFrame, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT,1));
-
             rootLayout.addView(mGameListLayout, new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,20));
             rootLayout.addView(mGameFrame, new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,80));
         }
@@ -139,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
         refreshGameFragment();
     }
 
+
     @Override
     public void OnMissileResult() {
         refreshGameFragment();
@@ -146,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
             refreshGameListFragment();
         }
     }
+
 
     private void refreshGameFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -168,6 +197,89 @@ public class MainActivity extends AppCompatActivity implements GameListFragment.
         refreshGameFragment();
         if (isTablet(getResources())) {
             refreshGameListFragment();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+        // Save gamelist and selected game index
+        File filesDir = getFilesDir();
+        Gson gson = new Gson();
+
+        try {
+            List<Game> games =  mGameListFragment.getGames();
+            // reset listeners (otherwise Gson will get in infinite loop due to circular references
+            // in the tree)
+            for (Game game : games) {
+                game.getOpponentPlayer().setOnMissileFiredListener(null);
+                game.getCurrentPlayer().setOnMissileFiredListener(null);
+            }
+            if (mGameFragment.getGame() != null) {
+                Game game = mGameFragment.getGame();
+                game.getCurrentPlayer().setOnMissileFiredListener(null);
+                game.getOpponentPlayer().setOnMissileFiredListener(null);
+                games.set(mGameListFragment.getIndexSelectedGame(), game);
+            }
+            String jsonGameList = gson.toJson(games);
+            File file = new File(filesDir, GAME_LIST_FILENAME);
+            FileWriter fileWriter = new FileWriter(file);
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+
+            writer.write(jsonGameList);
+            writer.close();
+
+            file = new File(filesDir, GAME_SELECTED_FILENAME);
+            fileWriter = new FileWriter(file);
+            writer = new BufferedWriter(fileWriter);
+
+            writer.write(mGameListFragment.getIndexSelectedGame() + "");
+            writer.close();
+        }
+        catch (Exception e) {
+            Log.e("Error writing file on pause","Error writing one of the files " + GAME_LIST_FILENAME + " or " + GAME_SELECTED_FILENAME + " Error: " + e.getMessage());
+        }
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        //load game list and selected game index
+        File filesDir = getFilesDir();
+        Gson gson = new Gson();
+
+        try {
+            File file = new File(filesDir,GAME_LIST_FILENAME);
+            FileReader fileReader = new FileReader(file);
+            BufferedReader reader = new BufferedReader(fileReader);
+            String jsonGameList = reader.readLine();
+            Type collectionType = new TypeToken<ArrayList<Game>>() {}.getType();
+            List<Game> games = gson.fromJson(jsonGameList, collectionType);
+            reader.close();
+
+            file = new File(filesDir,GAME_SELECTED_FILENAME);
+            fileReader = new FileReader(file);
+            reader = new BufferedReader(fileReader);
+            int indexGameSelected = Integer.parseInt(reader.readLine());
+            mGameListFragment.setIndexSelectedGame(indexGameSelected);
+            if (games != null && mGameFragment.getGame() != null) {
+                games.set(indexGameSelected, mGameFragment.getGame());
+            }
+            if (games != null) {
+                mGameListFragment.setGames(games);
+            }
+            else {
+                mGameListFragment.setGames(new ArrayList<Game>());
+            }
+           // mGameFragment.setGame(games.get(indexGameSelected));
+            reader.close();
+        }
+        catch (Exception e) {
+            Log.e("Error reading file on resume","Error reading one of the files " + GAME_LIST_FILENAME + " or " + GAME_SELECTED_FILENAME + " Error: " + e.getMessage());
         }
     }
 }

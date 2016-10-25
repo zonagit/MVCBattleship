@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -32,10 +31,9 @@ public class GameListFragment extends Fragment implements ListAdapter {
         return new GameListFragment();
     }
 
-    private Button mNewGameButton;
     private ListView mGameListView;
 
-    private List<Game> mGames = new ArrayList<Game>();
+    private List<Game> mGames = new ArrayList<>();
     private int mIndexSelectedGame = 0;
     private OnGameSelectedListener mOnGameSelectedListener;
 
@@ -43,12 +41,23 @@ public class GameListFragment extends Fragment implements ListAdapter {
         public void onGameSelected(GameListFragment gameListFragment, Game game);
     }
 
-    public OnGameSelectedListener getOnGameSelectedListener() {
-        return mOnGameSelectedListener;
-    }
-
     public void setOnGameSelectedListener(OnGameSelectedListener onGameSelectedListener) {
         mOnGameSelectedListener = onGameSelectedListener;
+    }
+
+    public int getIndexSelectedGame() {
+        return mIndexSelectedGame;
+    }
+
+    public void setIndexSelectedGame(int indexSelectedGame) {
+        mIndexSelectedGame = indexSelectedGame;
+    }
+
+    public void setGames(List<Game> games) {
+        mGames = games;
+    }
+    public List<Game> getGames() {
+        return mGames;
     }
 
     @Nullable
@@ -82,6 +91,15 @@ public class GameListFragment extends Fragment implements ListAdapter {
     public void addGameToList(Game newGame) {
         mGames.add(newGame);
         mGameListView.invalidateViews();
+    }
+
+    public void removeGameFromList() {
+        if (mGames != null && mGames.size()>0) {
+            mGames.remove(mIndexSelectedGame);
+        }
+        if (mIndexSelectedGame > 0) {
+            mIndexSelectedGame--;
+        }
     }
 
     // ListAdapter interface methods
@@ -145,10 +163,10 @@ public class GameListFragment extends Fragment implements ListAdapter {
         else {
             listViewText += " InProgress. \n Player  " + (game.getCurrentPlayer().getPlayerID()+1) + " turn \n";
         }
-        listViewText += "Player 1 Shots: " + game.getPlayer(0).getMissilesFired();
-        listViewText += " Hits: " + game.getPlayer(0).getScore() + "\n";
-        listViewText += "Player 2 Shots: " + game.getPlayer(1).getMissilesFired();
-        listViewText += " Hits: " + game.getPlayer(1).getScore() + "\n";
+        listViewText += "Player 1 Shots: " + game.getPlayerByID(0).getMissilesFired();
+        listViewText += " Hits: " + game.getPlayerByID(0).getScore() + "\n";
+        listViewText += "Player 2 Shots: " + game.getPlayerByID(1).getMissilesFired();
+        listViewText += " Hits: " + game.getPlayerByID(1).getScore() + "\n";
 
         listView.setText(listViewText);
         return listView;
